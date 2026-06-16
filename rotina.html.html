@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Minha Semana">
+<title>Minha Semana</title>
+<style>
+  :root {
+    --bg: #F7F6F2;
+    --card: #FFFFFF;
+    --border: #E8E6DF;
+    --text: #1A1A18;
+    --muted: #8A8880;
+    --accent: #2D5A3D;
+    --accent-light: #EAF3DE;
+    --study: #3C3489;
+    --study-bg: #EEEDFE;
+    --work: #085041;
+    --work-bg: #E1F5EE;
+    --ai: #854F0B;
+    --ai-bg: #FAEEDA;
+    --sport: #7A2E1A;
+    --sport-bg: #FAECE7;
+    --ritual: #72243E;
+    --ritual-bg: #FBEAF0;
+    --free: #444441;
+    --free-bg: #F1EFE8;
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #131312;
+      --card: #1E1E1C;
+      --border: #2A2A28;
+      --text: #F0EEE8;
+      --muted: #888680;
+      --accent: #5DCAA5;
+      --accent-light: #0F3D28;
+      --study: #CECBF6;
+      --study-bg: #26215C;
+      --work: #9FE1CB;
+      --work-bg: #04342C;
+      --ai: #FAC775;
+      --ai-bg: #412402;
+      --sport: #F5C4B3;
+      --sport-bg: #4A1B0C;
+      --ritual: #F4C0D1;
+      --ritual-bg: #4B1528;
+      --free: #D3D1C7;
+      --free-bg: #2C2C2A;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* HEADER */
+  .header { position: sticky; top: 0; z-index: 100; background: var(--bg); border-bottom: 1px solid var(--border); padding: 12px 16px 0; }
+  .header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .app-title { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+  .week-nav { display: flex; align-items: center; gap: 10px; }
+  .week-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border); background: var(--card); color: var(--text); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .week-label { font-size: 13px; font-weight: 500; color: var(--muted); min-width: 70px; text-align: center; }
+
+  /* DAY TABS */
+  .day-tabs { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 1px; scrollbar-width: none; }
+  .day-tabs::-webkit-scrollbar { display: none; }
+  .day-tab { flex-shrink: 0; padding: 7px 14px; border-radius: 20px 20px 0 0; font-size: 13px; font-weight: 500; cursor: pointer; border: none; background: transparent; color: var(--muted); transition: all 0.15s; position: relative; }
+  .day-tab.active { background: var(--card); color: var(--accent); font-weight: 600; }
+  .day-tab.today::after { content: ''; position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background: var(--accent); }
+
+  /* CONTENT */
+  .content { padding: 16px; max-width: 480px; margin: 0 auto; }
+  .day-view { display: none; }
+  .day-view.active { display: block; }
+
+  /* SECTION */
+  .section-label { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 20px 0 8px; }
+  .section-label:first-child { margin-top: 0; }
+
+  /* BLOCK */
+  .block { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 8px; overflow: hidden; }
+  .block-header { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; }
+  .block-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+  .block-info { flex: 1; min-width: 0; }
+  .block-time { font-size: 11px; color: var(--muted); margin-bottom: 2px; }
+  .block-title { font-size: 14px; font-weight: 600; line-height: 1.3; }
+  .block-sub { font-size: 12px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+  .block-tag { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; margin-top: 5px; }
+  .tag-study  { background: var(--study-bg); color: var(--study); }
+  .tag-work   { background: var(--work-bg); color: var(--work); }
+  .tag-ai     { background: var(--ai-bg); color: var(--ai); }
+  .tag-sport  { background: var(--sport-bg); color: var(--sport); }
+  .tag-ritual { background: var(--ritual-bg); color: var(--ritual); }
+  .tag-free   { background: var(--free-bg); color: var(--free); }
+
+  /* LINK */
+  .block-link { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: var(--study); text-decoration: none; padding: 8px 14px; border-top: 1px solid var(--border); background: var(--study-bg); }
+  .sport-link { color: var(--sport); background: var(--sport-bg); }
+
+  /* NOTE */
+  .block-note { border-top: 1px solid var(--border); padding: 10px 14px; }
+  .note-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 5px; }
+  .note-input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 10px; font-size: 13px; color: var(--text); font-family: inherit; resize: none; outline: none; line-height: 1.5; }
+  .note-input:focus { border-color: var(--accent); }
+  .note-input::placeholder { color: var(--muted); }
+
+  /* CHECKLIST */
+  .checklist { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); padding: 14px; margin-bottom: 8px; }
+  .checklist-title { font-size: 13px; font-weight: 600; margin-bottom: 10px; color: var(--ritual); }
+  .check-item { display: flex; align-items: flex-start; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
+  .check-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .check-item input[type=checkbox] { margin-top: 2px; width: 16px; height: 16px; flex-shrink: 0; accent-color: var(--ritual); cursor: pointer; }
+  .check-label { font-size: 13px; line-height: 1.4; transition: opacity 0.2s; }
+  .check-item.done .check-label { text-decoration: line-through; opacity: 0.4; }
+
+  /* WEEK SUMMARY */
+  .summary-btn { width: 100%; padding: 12px; border-radius: var(--radius); border: 1px dashed var(--border); background: transparent; color: var(--muted); font-size: 13px; font-weight: 500; cursor: pointer; margin-top: 8px; font-family: inherit; }
+  .summary-btn:hover { background: var(--card); }
+  .summary-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; padding: 20px; align-items: flex-end; }
+  .summary-modal.open { display: flex; }
+  .summary-sheet { background: var(--card); border-radius: 20px 20px 0 0; width: 100%; max-width: 480px; margin: 0 auto; padding: 20px; max-height: 70vh; overflow-y: auto; }
+  .summary-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .summary-header h2 { font-size: 17px; font-weight: 700; }
+  .summary-close { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .summary-day { margin-bottom: 14px; }
+  .summary-day h3 { font-size: 13px; font-weight: 600; color: var(--accent); margin-bottom: 6px; }
+  .summary-note { font-size: 12px; color: var(--muted); padding: 4px 0; border-bottom: 1px solid var(--border); line-height: 1.4; }
+  .summary-note:last-child { border-bottom: none; }
+  .summary-empty { font-size: 12px; color: var(--muted); font-style: italic; }
+
+  .fab { position: fixed; bottom: 24px; right: 20px; width: 50px; height: 50px; border-radius: 50%; background: var(--accent); color: white; border: none; font-size: 22px; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,0.2); z-index: 50; display: flex; align-items: center; justify-content: center; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="app-title">Minha Semana</div>
+    <div class="week-nav">
+      <button class="week-btn" onclick="changeWeek(-1)">‹</button>
+      <span class="week-label" id="weekLabel"></span>
+      <button class="week-btn" onclick="changeWeek(1)">›</button>
+    </div>
+  </div>
+  <div class="day-tabs" id="dayTabs"></div>
+</div>
+
+<div class="content" id="content"></div>
+
+<button class="fab" onclick="openSummary()" title="Resumo da semana">📊</button>
+
+<div class="summary-modal" id="summaryModal" onclick="closeSummary(event)">
+  <div class="summary-sheet">
+    <div class="summary-header">
+      <h2>Resumo da semana</h2>
+      <button class="summary-close" onclick="closeSummary()">×</button>
+    </div>
+    <div id="summaryContent"></div>
+  </div>
+</div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────────
+
+const DAYS = ['Segunda','Terça','Quarta','Quinta','Sexta'];
+const DAY_SHORT = ['Seg','Ter','Qua','Qui','Sex'];
+
+// Week offset from today's Monday (0 = current week)
+let weekOffset = 0;
+
+function getMondayOf(date) {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  d.setHours(0,0,0,0);
+  return d;
+}
+
+function getWeekDates(offset) {
+  const monday = getMondayOf(new Date());
+  monday.setDate(monday.getDate() + offset * 7);
+  return Array.from({length:5}, (_,i) => {
+    const d = new Date(monday);
+    d.setDate(d.getDate() + i);
+    return d;
+  });
+}
+
+// ─── SCHEDULE TEMPLATE PER DAY (0=Mon..4=Fri) ───────────────────────────────
+
+const STRETCH_LINKS = {
+  0: { url: 'https://www.youtube.com/watch?v=vCU9UBlpuEE', label: '▶ Despertar — mobilidade geral' },
+  1: { url: 'https://www.youtube.com/watch?v=GeFobZjgE_4', label: '▶ 21 exercícios de ativação — pré-futebol' },
+  2: { url: 'https://www.youtube.com/watch?v=6vSyPrcnOgU', label: '▶ Rotina matinal 10 min — pré-tênis' },
+  3: { url: 'https://www.correiobraziliense.com.br/cbradar/os-5-alongamentos-para-fazer-em-10-minutos-e-comecar-o-dia-bem/', label: '▶ 5 alongamentos em 10 min' },
+  4: { url: 'https://www.youtube.com/watch?v=vCU9UBlpuEE', label: '▶ Exercícios matinais — fechar a semana' }
+};
+
+const SPORT_BLOCKS = {
+  0: [{ icon:'🎾', time:'12h–13h', title:'Tênis', tag:'tag-sport' }],
+  1: [{ icon:'⚽', time:'12h', title:'Futebol', sub:'Total App', tag:'tag-sport' }],
+  2: [{ icon:'🎾', time:'12h–14h', title:'Tênis', tag:'tag-sport' }],
+  3: [],
+  4: []
+};
+
+// Claude session themes — rotates every 4 weeks, keyed by weekOffset mod 4
+const CLAUDE_THEMES = [
+  // week 1
+  { 0: {title:'Cenário imobiliário global', sub:'Mercado imobiliário, FIIs, taxas de juros', tag:'tag-ai'},
+    1: {title:'Introdução ao Claude', sub:'Prompts, funcionalidades, plugins disponíveis', tag:'tag-ai'},
+    2: {title:'Mercado de ações — base', sub:'B3, P/L, dividendos, valuation', tag:'tag-ai'},
+    3: {title:'Projeções financeiras', sub:'Planilha de caixa, controle de aluguel, contador', tag:'tag-work'},
+    4: {title:'Revisão + planejamento', sub:'O que aprendi? Temas da semana que vem', tag:'tag-ritual'} },
+  // week 2
+  { 0: {title:'Dólar e câmbio', sub:'Por que o dólar sobe e cai, BDRs, fundos cambiais', tag:'tag-ai'},
+    1: {title:'Claude para empresa', sub:'Contratos em PDF, resumos, redigir e-mails', tag:'tag-ai'},
+    2: {title:'Análise de esporte com dados', sub:'Estatísticas de tênis, apps de desempenho', tag:'tag-ai'},
+    3: {title:'Contratos e jurídico', sub:'Revisar contratos ativos, prazos, contador', tag:'tag-work'},
+    4: {title:'Revisão + planejamento', sub:'O que aprendi? Temas da semana que vem', tag:'tag-ritual'} },
+  // week 3
+  { 0: {title:'IA no mundo em 2025', sub:'O que está acontecendo, impacto em investimentos', tag:'tag-ai'},
+    1: {title:'Plugins e integrações', sub:'MCPs, conectar Gmail, Google Drive, automações', tag:'tag-ai'},
+    2: {title:'FIIs — fundos imobiliários', sub:'Como analisar: DY, P/VP, vacância', tag:'tag-ai'},
+    3: {title:'Time de investimentos', sub:'Revisar relatórios, discutir cenário', tag:'tag-work'},
+    4: {title:'Revisão + planejamento', sub:'O que aprendi? Temas da semana que vem', tag:'tag-ritual'} },
+  // week 4
+  { 0: {title:'Cenário macro Brasil', sub:'Selic, inflação, CDI e impacto em carteira', tag:'tag-ai'},
+    1: {title:'Claude para pesquisa', sub:'Busca web, comparações de mercado, relatórios', tag:'tag-ai'},
+    2: {title:'Organizar minha vida digital', sub:'E-mail, agenda, apps de produtividade', tag:'tag-ai'},
+    3: {title:'Dashboard financeiro', sub:'Visão consolidada, comparar meses, alertas', tag:'tag-work'},
+    4: {title:'Revisão do mês', sub:'O que aprendi? Ajustar rotina pro próximo mês', tag:'tag-ritual'} }
+];
+
+const CHECKLIST = {
+  0: ['Abrir material de estudo de amanhã (terça)','Anotar o módulo/capítulo específico','Checar pendências de empresa pra terça','Separar roupa do futebol','Celular longe da cama'],
+  1: ['Abrir material de estudo de amanhã (quarta)','Anotar o módulo/capítulo específico','Separar bolsa do tênis (quarta 12h–14h)','Checar pendências de empresa pra quarta','Celular longe da cama'],
+  2: ['Abrir material de estudo de amanhã (quinta)','Anotar o módulo/capítulo específico','Checar pendências de empresa pra quinta','Posso marcar esporte quinta? (Total App)','Celular longe da cama'],
+  3: ['Abrir material de estudo de amanhã (sexta)','Anotar o módulo/capítulo específico','Fechar pendências de empresa com prazo sexta','Pensar no que fazer no fim de semana','Celular longe da cama'],
+  4: ['Abrir material de estudo de segunda','Anotar os módulos da semana que vem','Listar pendências de empresa com prazo','Separar roupa do tênis de segunda (12h–13h)','Celular longe da cama']
+};
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+
+let activeDay = 0; // 0=Mon..4=Fri
+
+function todayDayIndex() {
+  const d = new Date().getDay(); // 0=Sun
+  if (d === 0 || d === 6) return 0;
+  return d - 1;
+}
+
+function storageKey(weekDates, dayIdx, field) {
+  const d = weekDates[dayIdx];
+  const key = `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+  return `rtn:${key}:${field}`;
+}
+
+function saveNote(weekDates, dayIdx, blockId, value) {
+  localStorage.setItem(storageKey(weekDates, dayIdx, `note:${blockId}`), value);
+}
+
+function loadNote(weekDates, dayIdx, blockId) {
+  return localStorage.getItem(storageKey(weekDates, dayIdx, `note:${blockId}`)) || '';
+}
+
+function saveCheck(weekDates, dayIdx, itemIdx, checked) {
+  localStorage.setItem(storageKey(weekDates, dayIdx, `check:${itemIdx}`), checked ? '1' : '0');
+}
+
+function loadCheck(weekDates, dayIdx, itemIdx) {
+  return localStorage.getItem(storageKey(weekDates, dayIdx, `check:${itemIdx}`)) === '1';
+}
+
+// ─── RENDER ──────────────────────────────────────────────────────────────────
+
+function formatWeekLabel(dates) {
+  const m = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const a = dates[0], b = dates[4];
+  if (a.getMonth() === b.getMonth()) return `${a.getDate()}–${b.getDate()} ${m[a.getMonth()]}`;
+  return `${a.getDate()} ${m[a.getMonth()]} – ${b.getDate()} ${m[b.getMonth()]}`;
+}
+
+function renderWeek() {
+  const dates = getWeekDates(weekOffset);
+  document.getElementById('weekLabel').textContent = formatWeekLabel(dates);
+
+  // tabs
+  const todayIdx = weekOffset === 0 ? todayDayIndex() : -1;
+  document.getElementById('dayTabs').innerHTML = DAY_SHORT.map((s,i) => {
+    const d = dates[i];
+    const label = `${s} ${d.getDate()}`;
+    return `<button class="day-tab${i===activeDay?' active':''}${i===todayIdx?' today':''}" onclick="switchDay(${i})">${label}</button>`;
+  }).join('');
+
+  renderDay(dates);
+}
+
+function renderDay(dates) {
+  const i = activeDay;
+  const wk = ((weekOffset % 4) + 4) % 4;
+  const theme = CLAUDE_THEMES[wk][i];
+  const stretch = STRETCH_LINKS[i];
+  const sport = SPORT_BLOCKS[i];
+  const checks = CHECKLIST[i];
+
+  const noteVal = (id) => loadNote(dates, i, id);
+
+  const noteBlock = (id, placeholder) => `
+    <div class="block-note">
+      <div class="note-label">📝 Nota do dia</div>
+      <textarea class="note-input" rows="2" placeholder="${placeholder}" 
+        oninput="saveNote(window._dates,${i},'${id}',this.value)">${escHtml(noteVal(id))}</textarea>
+    </div>`;
+
+  // afternoon block: empresa or ai depending on day
+  const afternoonIsWork = [0,2].includes(i); // Mon Wed = AI first, Tue Thu = work first
+  // Actually per our schedule: Mon=AI, Tue=Work, Wed=Work, Thu=AI, Fri=AI(revisão)
+  const pmFirst = {
+    0: {icon:'🤖', tag:'tag-ai', title:'Sessão com Claude', time:'14h–15h30', sub: theme.title, note:'note-ai'},
+    1: {icon:'🏢', tag:'tag-work', title:'Empresa', time:'14h30–16h', sub:'Investimentos / time', note:'note-work'},
+    2: {icon:'🏢', tag:'tag-work', title:'Empresa', time:'15h–16h30', sub:'Pendências abertas', note:'note-work'},
+    3: {icon:'🤖', tag:'tag-ai', title:'Sessão com Claude', time:'13h30–15h30', sub: theme.title, note:'note-ai'},
+    4: {icon:'🤖', tag:'tag-ai', title:'Sessão com Claude', time:'13h30–14h30', sub: theme.title, note:'note-ai'}
+  }[i];
+
+  const pmSecond = {
+    0: {icon:'🏢', tag:'tag-work', title:'Empresa', time:'15h30–17h', sub:'Contratos / contador', note:'note-work2'},
+    1: {icon:'🤖', tag:'tag-ai', title:'Sessão com Claude', time:'16h–17h30', sub: theme.title, note:'note-ai'},
+    2: {icon:'🤖', tag:'tag-ai', title:'Sessão com Claude', time:'16h30–17h30', sub: theme.title, note:'note-ai'},
+    3: {icon:'🏢', tag:'tag-work', title:'Empresa', time:'15h30–17h', sub:'Reuniões / follow-up', note:'note-work2'},
+    4: {icon:'🏢', tag:'tag-work', title:'Empresa', time:'15h–16h30', sub:'Fechar pendências da semana', note:'note-work2'}
+  }[i];
+
+  let html = '';
+
+  // MORNING
+  html += `<div class="section-label">☀️ Ritual de manhã</div>`;
+  html += `<div class="block">
+    <div class="block-header">
+      <div class="block-icon">⏰</div>
+      <div class="block-info">
+        <div class="block-time">8:00</div>
+        <div class="block-title">Acorda — sem celular</div>
+        <div class="block-sub">Alarme toca, banheiro, sem checar nada. Celular longe da cama.</div>
+      </div>
+    </div>
+  </div>`;
+
+  html += `<div class="block">
+    <div class="block-header">
+      <div class="block-icon">☕</div>
+      <div class="block-info">
+        <div class="block-time">8:05</div>
+        <div class="block-title">Cafezinho preto</div>
+        <div class="block-sub">Sua âncora de início. Café na mão = dia começou.</div>
+        <span class="block-tag tag-ritual">âncora</span>
+      </div>
+    </div>
+  </div>`;
+
+  html += `<div class="block">
+    <div class="block-header">
+      <div class="block-icon">🧘</div>
+      <div class="block-info">
+        <div class="block-time">8:10 — 10 min</div>
+        <div class="block-title">Alongamento matinal</div>
+        <div class="block-sub">${i===1?'Foco em pernas e quadril — você tem futebol hoje.':i===2?'Foco em ombros e pescoço — você tem tênis hoje.':'Mobilidade geral, respiração, acorda o corpo.'}</div>
+        <span class="block-tag tag-sport">corpo</span>
+      </div>
+    </div>
+    <a class="block-link sport-link" href="${stretch.url}" target="_blank">${stretch.label}</a>
+  </div>`;
+
+  html += `<div class="block">
+    <div class="block-header">
+      <div class="block-icon">🚿</div>
+      <div class="block-info">
+        <div class="block-time">8:20</div>
+        <div class="block-title">Banho</div>
+        <div class="block-sub">Ritual de transição. Sai do banho = modo ativo.</div>
+        <span class="block-tag tag-ritual">transição</span>
+      </div>
+    </div>
+  </div>`;
+
+  html += `<div class="block">
+    <div class="block-header">
+      <div class="block-icon">📋</div>
+      <div class="block-info">
+        <div class="block-time">8:40</div>
+        <div class="block-title">Revisar plano do dia</div>
+        <div class="block-sub">Já decidido ontem à noite. Só confirma o módulo e abre o material.</div>
+      </div>
+    </div>
+  </div>`;
+
+  // STUDY
+  html += `<div class="section-label">📚 Estudo — Certificado</div>`;
+  html += `<div class="block">
+    <div class="block-header">
+      <div class="block-icon">📖</div>
+      <div class="block-info">
+        <div class="block-time">9:00 — 50 min</div>
+        <div class="block-title">Bloco 1 de estudo</div>
+        <div class="block-sub">Timer ligado. Celular no outro cômodo.</div>
+        <span class="block-tag tag-study">certificado</span>
+      </div>
+    </div>
+    ${noteBlock('study1','Ex: Aula 4 — módulo de contratos')}
+  </div>`;
+
+  html += `<div class="block">
+    <div class="block-header">
+      <div class="block-icon">🧃</div>
+      <div class="block-info">
+        <div class="block-time">9:50 — 10 min</div>
+        <div class="block-title">Pausa ativa</div>
+        <div class="block-sub">Levanta, água, estica. Sem celular.</div>
+      </div>
+    </div>
+  </div>`;
+
+  html += `<div class="block">
+    <div class="block-header">
+      <div class="block-icon">📖</div>
+      <div class="block-info">
+        <div class="block-time">10:00 — 50 min</div>
+        <div class="block-title">${i===3?'Bloco 2 — revisão da semana':'Bloco 2 de estudo'}</div>
+        <div class="block-sub">${i===3?'Revisar o que ficou com dúvida durante a semana.':'Continua. Se terminar o módulo, anota dúvidas.'}</div>
+        <span class="block-tag tag-study">certificado</span>
+      </div>
+    </div>
+    ${noteBlock('study2','Ex: Aula 5 — revisão de conceitos')}
+  </div>`;
+
+  // SPORT
+  if (sport.length > 0) {
+    html += `<div class="section-label">🏃 Esporte</div>`;
+    sport.forEach(s => {
+      html += `<div class="block">
+        <div class="block-header">
+          <div class="block-icon">${s.icon}</div>
+          <div class="block-info">
+            <div class="block-time">${s.time}</div>
+            <div class="block-title">${s.title}</div>
+            ${s.sub ? `<div class="block-sub">${s.sub}</div>` : ''}
+            <span class="block-tag ${s.tag}">${s.title}</span>
+          </div>
+        </div>
+      </div>`;
+    });
+  }
+
+  // LUNCH
+  html += `<div class="section-label">🍽️ Almoço</div>`;
+  const lunchTime = i===2 ? '14:00' : '12:00';
+  html += `<div class="block">
+    <div class="block-header">
+      <div class="block-icon">🍽️</div>
+      <div class="block-info">
+        <div class="block-time">${lunchTime} — 45 min</div>
+        <div class="block-title">Almoço em casa</div>
+        <div class="block-sub">Come sem tela. Descanso real — recarrega a tarde.</div>
+      </div>
+    </div>
+  </div>`;
+
+  // AFTERNOON
+  html += `<div class="section-label">🌇 Tarde</div>`;
+  html += `<div class="block">
+    <div class="block-header">
+      <div class="block-icon">${pmFirst.icon}</div>
+      <div class="block-info">
+        <div class="block-time">${pmFirst.time}</div>
+        <div class="block-title">${pmFirst.title}</div>
+        <div class="block-sub">${pmFirst.sub}</div>
+        <span class="block-tag ${pmFirst.tag}">${pmFirst.title}</span>
+      </div>
+    </div>
+    ${noteBlock(pmFirst.note,'Ex: BTG nota fiscal, Rio de Janeiro')}
+  </div>`;
+
+  html += `<div class="block">
+    <div class="block-header">
+      <div class="block-icon">${pmSecond.icon}</div>
+      <div class="block-info">
+        <div class="block-time">${pmSecond.time}</div>
+        <div class="block-title">${pmSecond.title}</div>
+        <div class="block-sub">${pmSecond.sub}</div>
+        <span class="block-tag ${pmSecond.tag}">${pmSecond.title}</span>
+      </div>
+    </div>
+    ${noteBlock(pmSecond.note,'Ex: Follow-up contador, e-mails pendentes')}
+  </div>`;
+
+  html += `<div class="block">
+    <div class="block-header">
+      <div class="block-icon">✅</div>
+      <div class="block-info">
+        <div class="block-time">17:00</div>
+        <div class="block-title">Fechar tarefas do dia</div>
+        <div class="block-sub">O que ficou aberto vai pra amanhã. Não carrega na cabeça.</div>
+      </div>
+    </div>
+  </div>`;
+
+  // NIGHT
+  html += `<div class="section-label">🌙 Noite</div>`;
+  html += `<div class="block">
+    <div class="block-header">
+      <div class="block-icon">👥</div>
+      <div class="block-info">
+        <div class="block-time">19:00+</div>
+        <div class="block-title">Tempo livre</div>
+        <div class="block-sub">Amigos, sair, esporte noturno. Sem culpa.</div>
+        <span class="block-tag tag-free">livre</span>
+      </div>
+    </div>
+  </div>`;
+
+  // CHECKLIST
+  html += `<div class="section-label">🌙 Ritual de encerramento — 21h30</div>`;
+  html += `<div class="checklist">
+    <div class="checklist-title">Checklist de encerramento</div>
+    ${checks.map((item, idx) => {
+      const checked = loadCheck(dates, i, idx);
+      return `<label class="check-item${checked?' done':''}">
+        <input type="checkbox" ${checked?'checked':''} onchange="toggleCheck(event,window._dates,${i},${idx})">
+        <span class="check-label">${item}</span>
+      </label>`;
+    }).join('')}
+  </div>`;
+
+  html += `<button class="summary-btn" onclick="openSummary()">📊 Ver resumo da semana</button>`;
+  html += `<div style="height:80px"></div>`;
+
+  document.getElementById('content').innerHTML = `<div class="day-view active">${html}</div>`;
+  window._dates = dates;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── ACTIONS ─────────────────────────────────────────────────────────────────
+
+function switchDay(idx) {
+  activeDay = idx;
+  renderWeek();
+}
+
+function changeWeek(dir) {
+  weekOffset += dir;
+  renderWeek();
+}
+
+function toggleCheck(e, dates, dayIdx, itemIdx) {
+  const checked = e.target.checked;
+  saveCheck(dates, dayIdx, itemIdx, checked);
+  e.target.closest('.check-item').classList.toggle('done', checked);
+}
+
+function openSummary() {
+  const dates = getWeekDates(weekOffset);
+  const wk = ((weekOffset % 4) + 4) % 4;
+  let html = '';
+  DAYS.forEach((day, i) => {
+    const keys = ['study1','study2','note-ai','note-work','note-work2'];
+    const labels = ['Estudo bloco 1','Estudo bloco 2','Sessão Claude','Empresa','Empresa (2)'];
+    const notes = keys.map((k,j) => {
+      const v = loadNote(dates, i, k);
+      return v ? `<div class="summary-note"><strong>${labels[j]}:</strong> ${escHtml(v)}</div>` : '';
+    }).join('');
+    const theme = CLAUDE_THEMES[wk][i];
+    html += `<div class="summary-day">
+      <h3>${day} ${dates[i].getDate()}</h3>
+      <div class="summary-note">Tema Claude: ${theme.title}</div>
+      ${notes || '<div class="summary-empty">Sem notas registradas</div>'}
+    </div>`;
+  });
+  document.getElementById('summaryContent').innerHTML = html;
+  document.getElementById('summaryModal').classList.add('open');
+}
+
+function closeSummary(e) {
+  if (!e || e.target === document.getElementById('summaryModal') || e.target.classList.contains('summary-close')) {
+    document.getElementById('summaryModal').classList.remove('open');
+  }
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+
+activeDay = todayDayIndex();
+renderWeek();
+</script>
+</body>
+</html>
