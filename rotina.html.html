@@ -173,8 +173,11 @@ const CL={
 };
 
 function mon(date){const d=new Date(date),day=d.getDay(),diff=day===0?-6:1-day;d.setDate(d.getDate()+diff);d.setHours(0,0,0,0);return d;}
-function wdates(o){const m=mon(new Date());m.setDate(m.getDate()+o*7);return Array.from({length:5},(_,i)=>{const d=new Date(m);d.setDate(d.getDate()+i);return d;});}
+// Semana 1 de sessões começa na próxima segunda: 30/06/2025
+const START_MONDAY=new Date(2025,5,30);
+function wdates(o){const m=new Date(START_MONDAY);m.setDate(m.getDate()+o*7);return Array.from({length:5},(_,i)=>{const d=new Date(m);d.setDate(d.getDate()+i);return d;});}
 function todayIdx(){const d=new Date().getDay();return(d===0||d===6)?0:d-1;}
+function initWeekOffset(){const today=new Date();today.setHours(0,0,0,0);const diff=Math.floor((today-START_MONDAY)/(7*24*60*60*1000));wo=Math.max(0,diff);}
 function sk(dates,di,f){const d=dates[di];return`rtn:${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}:${f}`;}
 function sn(dates,di,id,v){localStorage.setItem(sk(dates,di,`note:${id}`),v);}
 function ln(dates,di,id){return localStorage.getItem(sk(dates,di,`note:${id}`))||'';}
@@ -310,6 +313,7 @@ function closeSum(e){
 }
 
 ad=todayIdx();
+initWeekOffset();
 renderWeek();
 </script>
 </body>
